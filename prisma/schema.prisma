@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users
+model User {
+  id          String  @id @default(uuid())
+  email       String  @unique
+  firebaseUid String? @unique
+  name        String?
+
+  givenName         String?
+  surname           String?
+  userPrincipalName String?
+
+  jobTitle       String?
+  department     String?
+  officeLocation String?
+  mobilePhone    String?
+  businessPhone  String?
+
+  fileId String?
+
+  active         Boolean      @default(false)
+  externalActive Boolean      @default(false)
+  phone          String?
+  threadId       String?
+  firstAccess    Boolean      @default(false)
+  provider       AuthProvider @default(local)
+  refreshToken   String?
+  accessToken    String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  photo File? @relation(fields: [fileId], references: [id])
+
+  @@map("users")
+}
+
+enum AuthProvider {
+  local
+  google
+  microsoft
+}
+
+// Media
+// Files
+model File {
+  id        String @id @default(uuid())
+  name      String
+  extension String
+  baseUrl   String
+  folder    String
+  file      String
+  url       String @unique
+  size      Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String?
+  User      User[]
+  contractId String?
+  Contract   Contract? @relation(fields: [contractId], references: [id])
+
+  @@index([id, createdAt(sort: Desc)])
+}
+
+model Contract {
+  id          String   @id @default(uuid())
+  companyName String
+  description String?
+  website     String?
+  startDate   DateTime
+  endDate     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  files File[]
+}
+
+enum FileType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+}
