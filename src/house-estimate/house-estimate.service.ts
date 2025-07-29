@@ -1,11 +1,11 @@
 // Dependencies
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId, WithId, Document } from 'mongodb';
 
 // Services
 import { MongoService } from '../mongo/mongo.service';
 
-export interface HouseEstimate extends Record<string, any> {
+export interface HouseEstimate extends Document {
   _id?: ObjectId;
   items?: unknown[];
 }
