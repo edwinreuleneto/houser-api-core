@@ -1,5 +1,5 @@
 // Dependencies
-import { Controller, Get, Param, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Body, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -13,6 +13,7 @@ import { HouseEstimateService } from './house-estimate.service';
 // DTOs
 import { HouseEstimateDto } from './dto/house-estimate.dto';
 import { UpdateHouseEstimateDto } from './dto/update-house-estimate.dto';
+import { FilterHouseEstimateDto } from './dto/filter-house-estimate.dto';
 
 @ApiTags('House Estimate')
 @ApiBearerAuth()
@@ -21,11 +22,14 @@ export class HouseEstimateController {
   constructor(private readonly houseEstimateService: HouseEstimateService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lista house estimates' })
+  @ApiOperation({ summary: 'Lista house estimates com filtros e paginação' })
   @ApiOkResponse({ type: [HouseEstimateDto] })
-  async getAll(): Promise<HouseEstimateDto[]> {
-    const estimates = await this.houseEstimateService.getAll();
-    return estimates as unknown as HouseEstimateDto[];
+  async getAll(
+    @Query() filter: FilterHouseEstimateDto,
+  ): Promise<{ data: HouseEstimateDto[]; page: number; totalPages: number }> {
+    return (await this.houseEstimateService.getAll(
+      filter,
+    )) as unknown as { data: HouseEstimateDto[]; page: number; totalPages: number };
   }
 
   @Get(':id')
