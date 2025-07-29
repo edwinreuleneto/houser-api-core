@@ -13,27 +13,11 @@ model User {
   email       String  @unique
   firebaseUid String? @unique
   name        String?
+  fileId      String?
 
-  givenName         String?
-  surname           String?
-  userPrincipalName String?
-
-  jobTitle       String?
-  department     String?
-  officeLocation String?
-  mobilePhone    String?
-  businessPhone  String?
-
-  fileId String?
-
-  active         Boolean      @default(false)
-  externalActive Boolean      @default(false)
-  phone          String?
-  threadId       String?
-  firstAccess    Boolean      @default(false)
-  provider       AuthProvider @default(local)
-  refreshToken   String?
-  accessToken    String?
+  active      Boolean @default(true)
+  phone       String?
+  firstAccess Boolean @default(false)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -43,12 +27,6 @@ model User {
   photo File? @relation(fields: [fileId], references: [id])
 
   @@map("users")
-}
-
-enum AuthProvider {
-  local
-  google
-  microsoft
 }
 
 // Media
@@ -63,10 +41,10 @@ model File {
   url       String @unique
   size      Int
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  postId    String?
-  User      User[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  postId     String?
+  User       User[]
   contractId String?
   Contract   Contract? @relation(fields: [contractId], references: [id])
 
@@ -74,7 +52,7 @@ model File {
 }
 
 model Contract {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   companyName String
   description String?
   website     String?

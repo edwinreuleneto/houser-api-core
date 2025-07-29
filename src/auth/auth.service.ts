@@ -6,12 +6,8 @@ import { FirebaseService } from '../firebase/firebase.service';
 import { UserService } from '../user/user.service';
 
 // DTOs
-import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
-
-// Enums
-import { AuthProvider } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -26,16 +22,7 @@ export class AuthService {
     try {
       return await this.firebaseService.verifyToken(token);
     } catch (error) {
-      this.logger.error('Failed to verify Firebase token', error.stack);
-      throw error;
-    }
-  }
-
-  async syncUser(data: CreateUserDto) {
-    try {
-      return await this.firebaseService.saveOrUpdateUser(data);
-    } catch (error) {
-      this.logger.error('Failed to sync user', error.stack);
+      this.logger.error('Failed to verify Firebase token', error);
       throw error;
     }
   }
@@ -46,7 +33,7 @@ export class AuthService {
       const user = await this.userService.findByFirebaseUid(decoded.uid);
       return { token, user };
     } catch (error) {
-      this.logger.error('Failed to login', error.stack);
+      this.logger.error('Failed to login', error);
       throw error;
     }
   }
@@ -63,12 +50,11 @@ export class AuthService {
         email: firebaseUser.email!,
         firebaseUid: firebaseUser.uid,
         name: firebaseUser.displayName ?? data.name,
-        provider: AuthProvider.local,
       });
 
       return { uid: firebaseUser.uid, email: firebaseUser.email };
     } catch (error) {
-      this.logger.error('Failed to signup', error.stack);
+      this.logger.error('Failed to signup', error);
       throw error;
     }
   }

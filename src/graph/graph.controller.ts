@@ -15,12 +15,4 @@ export class GraphController {
   getUsers() {
     return this.graphService.getUsersWithPhotos();
   }
-
-  @Post('sync-users')
-  @ApiOperation({
-    summary: 'Sincroniza usuários do Microsoft Graph na base local',
-  })
-  syncUsers() {
-    return this.graphService.syncUsers();
-  }
 }

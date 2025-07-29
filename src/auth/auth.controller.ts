@@ -38,11 +38,4 @@ export class AuthController {
   signup(@Body() data: SignupDto) {
     return this.authService.signup(data);
   }
-
-  @Public()
-  @Post('sync-user')
-  @ApiOperation({ summary: 'Sincroniza usuário com Firebase' })
-  syncUser(@Body() data: CreateUserDto) {
-    return this.authService.syncUser(data);
-  }
 }
