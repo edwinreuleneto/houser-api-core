@@ -35,14 +35,16 @@ export class HouseEstimateService implements OnModuleInit {
     totalPages: number;
   }> {
     try {
-      const { page = 1, limit = 10, id, ...where } = filter ?? {};
+      const { page = 1, limit = 10, id, items, ...where } = filter ?? {};
       if (id) {
         Object.assign(where, { _id: new ObjectId(id) });
       }
+
       const skip = (page - 1) * limit;
       const [data, total] = await Promise.all([
         this.collection
           .find(where)
+          .sort({ orderID: -1 })
           .skip(skip)
           .limit(Number(limit))
           .toArray(),
