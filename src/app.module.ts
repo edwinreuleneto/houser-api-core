@@ -16,6 +16,8 @@ import { GraphModule } from './graph/graph.module';
 import { S3Module } from './s3/s3.module';
 import { FilesModule } from './files/files.module';
 import { ContractsModule } from './contracts/contracts.module';
+import { MongoModule } from './mongo/mongo.module';
+import { HouseEstimateModule } from './house-estimate/house-estimate.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ContractsModule } from './contracts/contracts.module';
     S3Module,
     FilesModule,
     ContractsModule,
+    MongoModule,
+    HouseEstimateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
