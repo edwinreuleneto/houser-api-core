@@ -1,6 +1,11 @@
 // Dependencies
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
-import { ObjectId, WithId, Document } from 'mongodb';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+  OnModuleInit,
+} from '@nestjs/common';
+import { ObjectId, WithId, Document, Collection } from 'mongodb';
 
 // Services
 import { MongoService } from '../mongo/mongo.service';
@@ -11,11 +16,13 @@ export interface HouseEstimate extends Document {
 }
 
 @Injectable()
-export class HouseEstimateService {
+export class HouseEstimateService implements OnModuleInit {
   private readonly logger = new Logger(HouseEstimateService.name);
-  private readonly collection;
+  private collection!: Collection<HouseEstimate>;
 
-  constructor(private readonly mongoService: MongoService) {
+  constructor(private readonly mongoService: MongoService) {}
+
+  async onModuleInit() {
     this.collection = this.mongoService.collection<HouseEstimate>('house_estimate');
   }
 
