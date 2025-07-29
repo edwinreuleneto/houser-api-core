@@ -71,3 +71,20 @@ enum FileType {
   DOCUMENT
   VIDEO
 }
+
+model Sale {
+  id              String   @id @default(uuid())
+  photoId         String?
+  address         String
+  lat             Float
+  long            Float
+  responsibleName String
+  phone           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  photo File? @relation(fields: [photoId], references: [id])
+
+  @@index([id, createdAt(sort: Desc)])
+}
