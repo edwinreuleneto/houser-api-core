@@ -3,7 +3,7 @@
 /node_modules
 /build
 
-/src/firebase/firebase-config.ts
+# /src/firebase/firebase-config.ts
 
 # Logs
 logs
