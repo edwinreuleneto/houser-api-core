@@ -108,6 +108,21 @@ $ mau deploy
 
 With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
+## Deploy to Heroku
+
+Heroku builds the project with the included `Procfile` and runs database migrations automatically. Basic deployment flow:
+
+```bash
+# login and create app
+heroku login
+heroku create your-app-name
+
+# push code
+git push heroku main
+```
+
+Set the required environment variables in Heroku, including the `DATABASE_URL` and any values from `.env.example`.
+
 ## Resources
 
 Check out a few resources that may come in handy when working with NestJS:
