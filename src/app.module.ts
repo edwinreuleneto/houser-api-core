@@ -18,6 +18,7 @@ import { ContractsModule } from './contracts/contracts.module';
 import { MongoModule } from './mongo/mongo.module';
 import { HouseEstimateModule } from './house-estimate/house-estimate.module';
 import { SalesModule } from './sales/sales.module';
+import { WaitingListModule } from './waiting-list/waiting-list.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SalesModule } from './sales/sales.module';
     MongoModule,
     HouseEstimateModule,
     SalesModule,
+    WaitingListModule,
   ],
   controllers: [AppController],
   providers: [AppService],
