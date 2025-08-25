@@ -47,6 +47,7 @@ model File {
   User       User[]
   contractId String?
   Contract   Contract? @relation(fields: [contractId], references: [id])
+  Sale       Sale[]
 
   @@index([id, createdAt(sort: Desc)])
 }
@@ -73,7 +74,7 @@ enum FileType {
 }
 
 model Sale {
-  id              String   @id @default(uuid())
+  id              String  @id @default(uuid())
   photoId         String?
   address         String
   lat             Float

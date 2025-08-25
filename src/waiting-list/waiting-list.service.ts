@@ -20,10 +20,14 @@ export class WaitingListService {
 
   async create(createWaitingListDto: CreateWaitingListDto) {
     try {
-      return await this.prisma.waitingList.create({ data: createWaitingListDto });
+      return await this.prisma.waitingList.create({
+        data: createWaitingListDto,
+      });
     } catch (error) {
       this.logger.error('Failed to create waiting list entry', error);
-      throw new InternalServerErrorException('Failed to create waiting list entry');
+      throw new InternalServerErrorException(
+        'Failed to create waiting list entry',
+      );
     }
   }
 
@@ -42,7 +46,9 @@ export class WaitingListService {
       return { data, page, totalPages };
     } catch (error) {
       this.logger.error('Failed to list waiting list entries', error);
-      throw new InternalServerErrorException('Failed to list waiting list entries');
+      throw new InternalServerErrorException(
+        'Failed to list waiting list entries',
+      );
     }
   }
 
@@ -51,7 +57,9 @@ export class WaitingListService {
       return await this.prisma.waitingList.findUnique({ where: { id } });
     } catch (error) {
       this.logger.error('Failed to get waiting list entry', error);
-      throw new InternalServerErrorException('Failed to get waiting list entry');
+      throw new InternalServerErrorException(
+        'Failed to get waiting list entry',
+      );
     }
   }
 
@@ -63,7 +71,9 @@ export class WaitingListService {
       });
     } catch (error) {
       this.logger.error('Failed to update waiting list entry', error);
-      throw new InternalServerErrorException('Failed to update waiting list entry');
+      throw new InternalServerErrorException(
+        'Failed to update waiting list entry',
+      );
     }
   }
 
@@ -72,7 +82,9 @@ export class WaitingListService {
       return await this.prisma.waitingList.delete({ where: { id } });
     } catch (error) {
       this.logger.error('Failed to remove waiting list entry', error);
-      throw new InternalServerErrorException('Failed to remove waiting list entry');
+      throw new InternalServerErrorException(
+        'Failed to remove waiting list entry',
+      );
     }
   }
 }
