@@ -33,8 +33,14 @@ export class S3Service {
       const key = folder
         ? `${folder}/${Date.now()}-${file.originalname}`
         : `${Date.now()}-${file.originalname}`;
+      const contentType = file.mimetype || 'application/octet-stream';
       await this.s3.send(
-        new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: file.buffer }),
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: file.buffer,
+          ContentType: contentType,
+        }),
       );
       const url = `https://${this.bucket}.s3.amazonaws.com/${key}`;
       const result = {

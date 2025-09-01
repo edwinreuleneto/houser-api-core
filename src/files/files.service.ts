@@ -42,13 +42,21 @@ export class FilesService {
   ): Promise<FileModel> {
     try {
       const buffer = Buffer.from(base64, 'base64');
-      const mime = filename.split('.').pop() ?? 'jpg';
+      const ext = (filename.split('.').pop() ?? 'jpg').toLowerCase();
+      const mime =
+        ext === 'svg'
+          ? 'image/svg+xml'
+          : ext === 'jpg' || ext === 'jpeg'
+            ? 'image/jpeg'
+            : ext === 'png'
+              ? 'image/png'
+              : 'application/octet-stream';
       const file: Express.Multer.File = {
         buffer,
         fieldname: 'file',
         originalname: filename,
         encoding: '7bit',
-        mimetype: `image/${mime}`,
+        mimetype: mime,
         size: buffer.length,
         stream: Readable.from(buffer),
       } as any;

@@ -18,7 +18,7 @@ async function bootstrap() {
   // Lista branca de domínios permitidos (separados por vírgula)
   const whitelist = (process.env.CORS_WHITELIST ?? '')
     .split(',')
-    .map(origin => origin.trim())
+    .map((origin) => origin.trim())
     .filter(Boolean);
 
   // Configuração do CORS

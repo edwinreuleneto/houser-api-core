@@ -108,6 +108,82 @@ $ mau deploy
 
 With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
+## Blog IA
+
+Endpoint para gerar e criar um post completo usando IA, com entrada simplificada.
+
+- Rota: `POST /blogs/ai`
+- Autenticação: Bearer Token
+
+Requisição (JSON):
+
+```
+{
+  "prompt": "tema/assunto do post",
+  "authorId": "<User.id>",
+  "status": "DRAFT" | "PUBLISHED" | "ARCHIVED" (opcional),
+  "publishedAt": "2025-01-01T12:00:00.000Z" (opcional)
+}
+```
+
+Resposta (JSON):
+
+```
+{
+  "id": "...",
+  "title": "...",
+  "slug": "...",
+  "description": "...",
+  "content": "<h2>...</h2>...", // HTML
+  "metaTags": ["..."],
+  "authorId": "...",
+  "publishedAt": "2025-01-01T12:00:00.000Z" | null,
+  "status": "DRAFT" | "PUBLISHED" | "ARCHIVED",
+  "createdAt": "...",
+  "updatedAt": "...",
+  "cover": {
+    "id": "...",
+    "name": "cover.png",
+    "extension": "png",
+    "baseUrl": "...",
+    "folder": "blogs",
+    "file": "...",
+    "url": "...",
+    "size": 12345,
+    "createdAt": "...",
+    "updatedAt": "..."
+  },
+  "author": {
+    "id": "...",
+    "email": "...",
+    "name": "..."
+  }
+}
+```
+
+Notas:
+- A IA é instruída a responder sempre em inglês e o HTML retornado não inclui `<html>`/`<body>`.
+- A imagem de capa pode ser gerada automaticamente (campo `cover`). Para desativar, use `AI_IMAGE_ENABLED=false` no `.env`.
+- O Swagger exibe o schema através do `GenerateBlogDto` (entrada) e `BlogDto` (retorno).
+
+### Configuração de imagens (opcional)
+
+Variáveis de ambiente:
+
+```
+AI_IMAGE_ENABLED=false        # 'false' desativa a geração de capa
+AI_IMAGE_MODEL=gpt-image-1    # modelo de imagem
+AI_IMAGE_SIZE=1536x1024       # 1024x1024 | 1024x1536 | 1536x1024 | auto
+AI_IMAGE_PLACEHOLDER=true     # usa placeholder (1x1 PNG) se a geração não estiver disponível
+AI_IMAGE_PLACEHOLDER_URL=     # opcional: URL de placeholder (ex.: https://via.placeholder.com/1536x1024.png?text=Houser)
+```
+
+Observações:
+- Se a sua organização não estiver verificada para o modelo de imagens, a geração será ignorada sem falhar a criação do post.
+- Quando ativado e disponível, a imagem é salva e vinculada automaticamente como `cover`.
+- Com `AI_IMAGE_PLACEHOLDER=true`, se a IA não gerar imagem, um placeholder é salvo como capa. 
+  Se `AI_IMAGE_PLACEHOLDER_URL` estiver definido, é usado; caso contrário utiliza via.placeholder.com no tamanho configurado.
+
 ## Deploy to Heroku
 
 Heroku builds the project with the included `Procfile` and runs database migrations automatically. Basic deployment flow:
@@ -149,3 +225,28 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Rota em lote: `POST /blogs/ai/batch` — gera múltiplos posts a partir de uma lista de temas
+
+Requisição (JSON, batch):
+
+```
+{
+  "prompts": [
+    "tema 1",
+    "tema 2",
+    "tema 3"
+  ],
+  "authorId": "<User.id>",
+  "status": "DRAFT" | "PUBLISHED" | "ARCHIVED" (opcional),
+  "publishedAt": "2025-01-01T12:00:00.000Z" (opcional)
+}
+```
+
+Resposta (JSON):
+
+```
+[
+  { "id": "...", "title": "...", "slug": "...", ... },
+  { "id": "...", "title": "...", "slug": "...", ... }
+]
+```

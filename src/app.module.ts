@@ -19,6 +19,8 @@ import { MongoModule } from './mongo/mongo.module';
 import { HouseEstimateModule } from './house-estimate/house-estimate.module';
 import { SalesModule } from './sales/sales.module';
 import { WaitingListModule } from './waiting-list/waiting-list.module';
+import { BlogModule } from './blog/blog.module';
+import { SocialPostModule } from './social-post/social-post.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { WaitingListModule } from './waiting-list/waiting-list.module';
     HouseEstimateModule,
     SalesModule,
     WaitingListModule,
+    BlogModule,
+    SocialPostModule,
   ],
   controllers: [AppController],
   providers: [AppService],
