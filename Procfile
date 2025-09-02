@@ -1,2 +1,1 @@
-release: npm run db:migrate
-web: node dist/main
+web: npm run start
