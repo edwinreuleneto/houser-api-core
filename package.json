@@ -12,13 +12,10 @@
     "build": "nest build",
     "postinstall": "prisma generate",
     "heroku-postbuild": "npm install --include=dev && npm run build",
-
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
-
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-
     "db:migrate": "prisma migrate deploy",
     "db:backfill:slugs": "ts-node scripts/backfill-slugs.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -30,11 +27,11 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.24",
-    "@langchain/openai": "^0.3.12",
     "@aws-sdk/client-s3": "^3.850.0",
     "@aws-sdk/s3-request-presigner": "^3.850.0",
     "@azure/identity": "^3.4.2",
+    "@langchain/core": "^0.3.24",
+    "@langchain/openai": "^0.3.12",
     "@microsoft/microsoft-graph-client": "^3.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
@@ -42,6 +39,7 @@
     "@nestjs/swagger": "^11.2.0",
     "@prisma/client": "^6.12.0",
     "@prisma/extension-accelerate": "^2.0.2",
+    "bullmq": "^5.12.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^17.2.1",

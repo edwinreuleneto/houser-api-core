@@ -35,6 +35,11 @@ export class AiService {
   private readonly onHeroku = Boolean(
     process.env.DYNO || process.env.HEROKU_APP_NAME || process.env.HEROKU_DYNO_ID,
   );
+  private readonly fallbackLocalDraftEnabled = (
+    process.env.AI_FALLBACK_LOCAL_DRAFT ?? 'true'
+  )
+    .toString()
+    .toLowerCase() !== 'false';
 
   // Timeboxing to avoid Heroku's 30s router timeout (H12)
   private readonly deadlineMs = parseInt(
@@ -70,6 +75,55 @@ export class AiService {
       }),
       timeout,
     ]) as Promise<T>;
+  }
+  private buildLocalDraftParsed(input: GenerateBlogInput) {
+    const clean = (s: string) => String(s || '').replace(/\s+/g, ' ').trim();
+    const base = clean(input.prompt);
+    const words = base.split(' ').filter(Boolean);
+    const title =
+      (base.length > 0 ? base : 'Novo post')
+        .split(/[.!?]/)[0]
+        .slice(0, 60)
+        .replace(/(^.|\s.)/g, (m) => m.toUpperCase());
+    const description = `Resumo rápido: ${base.slice(0, 140)}`;
+    const deriveTags = () => {
+      if (input.keywords && input.keywords.length) return input.keywords.slice(0, 6);
+      const stop = new Set([
+        'para','com','uma','das','dos','que','como','e','de','da','do','em','no','na','os','as','um','uma','por','sobre','the','and','for','with','from','into','to'
+      ]);
+      const freq = new Map<string, number>();
+      for (const w of words) {
+        const t = w.toLowerCase().replace(/[^a-zá-ú0-9]/gi, '');
+        if (!t || t.length < 4 || stop.has(t)) continue;
+        freq.set(t, (freq.get(t) || 0) + 1);
+      }
+      return Array.from(freq.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([t]) => t);
+    };
+    const tags = deriveTags();
+    const content = [
+      `# ${title}`,
+      '',
+      description,
+      '',
+      '## Principais pontos',
+      ...Array.from(new Set(words.slice(0, 20)))
+        .filter((w) => w.length > 3)
+        .slice(0, 5)
+        .map((w) => `- ${w}`),
+      '',
+      '## Conclusão',
+      'Este é um rascunho rápido gerado localmente quando o serviço de IA está lento. Edite e publique quando estiver pronto.',
+    ].join('\n');
+    return {
+      title,
+      description,
+      content,
+      metaTags: tags,
+      imagePrompt: title,
+    } as any;
   }
 
   async generateBlogPost(
@@ -113,6 +167,9 @@ export class AiService {
             this.chatTimeoutMs,
             'chat-completion(fallback)',
           );
+        } else if ((err?.code === 'ETIMEDOUT' || msg.includes('timed out')) && this.fallbackLocalDraftEnabled) {
+          this.logger.warn('Chat timed out; using local draft fallback.');
+          // proceed without throwing; we'll construct a local draft below
         } else {
           throw err;
         }
@@ -125,9 +182,14 @@ export class AiService {
             ? response.content.map((c: any) => c?.text ?? '').join('\n')
             : '';
 
-      const parsed = this.safeJson(text || '{}');
+      let parsed = this.safeJson(text || '{}');
       if (!parsed || !parsed.title || !parsed.description || !parsed.content) {
-        throw new Error('Resposta inválida do modelo');
+        if (this.fallbackLocalDraftEnabled) {
+          this.logger.warn('Model response invalid; building local draft.');
+          parsed = this.buildLocalDraftParsed(input);
+        } else {
+          throw new Error('Resposta inválida do modelo');
+        }
       }
 
       const toSlug = (txt: string) =>

@@ -24,12 +24,16 @@ import { FilterBlogDto } from './dto/filter-blog.dto';
 import { GenerateBlogDto } from './dto/generate-blog.dto';
 import { GenerateBlogBatchDto } from './dto/generate-blog-batch.dto';
 import { BlogDto } from './dto/blog.dto';
+import { AiBlogQueue } from '../queues/workers/ai-blog.queue';
 
 @ApiTags('Blog')
 @ApiBearerAuth()
 @Controller('blogs')
 export class BlogController {
-  constructor(private readonly blogService: BlogService) {}
+  constructor(
+    private readonly blogService: BlogService,
+    private readonly aiBlogQueue: AiBlogQueue,
+  ) {}
 
   @Post()
   @ApiConsumes('multipart/form-data')
@@ -56,6 +60,18 @@ export class BlogController {
   @ApiOkResponse({ type: BlogDto })
   createWithAi(@Body() dto: GenerateBlogDto) {
     return this.blogService.generateWithAi(dto);
+  }
+
+  @Post('ai/async')
+  @ApiOperation({ summary: 'Enfileira geração de post com IA (assíncrono)' })
+  enqueueWithAi(@Body() dto: GenerateBlogDto) {
+    return this.aiBlogQueue.enqueue(dto);
+  }
+
+  @Get('ai/jobs/:id')
+  @ApiOperation({ summary: 'Consulta status de job de IA' })
+  getAiJob(@Param('id') id: string) {
+    return this.aiBlogQueue.getStatus(id);
   }
 
   @Post('ai/batch')
