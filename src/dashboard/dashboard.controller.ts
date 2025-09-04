@@ -16,7 +16,10 @@ export class DashboardController {
 
   @Get('timeseries')
   @ApiOperation({ summary: 'Série temporal de criação/publicação' })
-  timeseries(@Query('range') range = '30d', @Query('interval') interval: any = 'day') {
+  timeseries(
+    @Query('range') range = '30d',
+    @Query('interval') interval: any = 'day',
+  ) {
     return this.dashboard.timeseries(range, interval);
   }
 
@@ -31,5 +34,43 @@ export class DashboardController {
   topAuthors(@Query('limit') limit = '10') {
     return this.dashboard.topAuthors(Number(limit));
   }
-}
 
+  @Get('estimates/timeseries')
+  @ApiOperation({ summary: 'Série temporal de solicitações de orçamento' })
+  estimateTimeseries(
+    @Query('range') range = '30d',
+    @Query('interval') interval: any = 'day',
+  ) {
+    return this.dashboard.estimateTimeseries(range, interval);
+  }
+
+  @Get('reads')
+  @ApiOperation({ summary: 'Quantidade total de leituras (blogs)' })
+  totalReads() {
+    return this.dashboard.totalReads();
+  }
+
+  @Get('reads/timeseries')
+  @ApiOperation({ summary: 'Série temporal de leituras (reads) de blogs' })
+  readsTimeseries(
+    @Query('range') range = '30d',
+    @Query('interval') interval: any = 'day',
+  ) {
+    return this.dashboard.readsTimeseries(range, interval);
+  }
+
+  @Get('top-read')
+  @ApiOperation({ summary: 'Top 10 posts mais lidos' })
+  topRead(
+    @Query('limit') limit = '10',
+    @Query('range') range?: string,
+  ) {
+    return this.dashboard.topRead(Number(limit), range);
+  }
+
+  @Get('access/last-30')
+  @ApiOperation({ summary: 'Quantidade de acessos (views e reads) nos últimos 30 dias' })
+  accessLast30() {
+    return this.dashboard.accessLast30();
+  }
+}

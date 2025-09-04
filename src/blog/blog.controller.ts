@@ -82,4 +82,22 @@ export class BlogController {
   remove(@Param('id') id: string) {
     return this.blogService.remove(id);
   }
+
+  @Post(':id/access')
+  @ApiOperation({ summary: 'Incrementa contadores de acesso (view/read) por ID' })
+  addAccessById(
+    @Param('id') id: string,
+    @Body('type') type: 'view' | 'read' = 'view',
+  ) {
+    return this.blogService.addAccessById(id, type);
+  }
+
+  @Post('slug/:slug/access')
+  @ApiOperation({ summary: 'Incrementa contadores de acesso (view/read) por slug' })
+  addAccessBySlug(
+    @Param('slug') slug: string,
+    @Body('type') type: 'view' | 'read' = 'view',
+  ) {
+    return this.blogService.addAccessBySlug(slug, type);
+  }
 }

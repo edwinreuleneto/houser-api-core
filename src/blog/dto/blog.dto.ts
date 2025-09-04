@@ -41,6 +41,12 @@ export class BlogDto {
   @ApiProperty({ enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED'] })
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
+  @ApiProperty({ description: 'Total de visualizações (views)' })
+  viewsCount: number;
+
+  @ApiProperty({ description: 'Total de leituras (reads)' })
+  readsCount: number;
+
   @ApiProperty({ type: Date })
   createdAt: Date;
 

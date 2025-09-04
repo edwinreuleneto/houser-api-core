@@ -21,6 +21,7 @@ import { SalesModule } from './sales/sales.module';
 import { WaitingListModule } from './waiting-list/waiting-list.module';
 import { BlogModule } from './blog/blog.module';
 import { SocialPostModule } from './social-post/social-post.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SocialPostModule } from './social-post/social-post.module';
     WaitingListModule,
     BlogModule,
     SocialPostModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

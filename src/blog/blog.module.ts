@@ -6,6 +6,7 @@ import { BlogService } from './blog.service';
 
 // Controllers
 import { BlogController } from './blog.controller';
+import { MongoModule } from '../mongo/mongo.module';
 
 // Modules
 import { PrismaModule } from '../prisma/prisma.module';
@@ -14,7 +15,7 @@ import { AiModule } from '../ai/ai.module';
 import { SocialPostModule } from '../social-post/social-post.module';
 
 @Module({
-  imports: [PrismaModule, FilesModule, AiModule, SocialPostModule],
+  imports: [PrismaModule, FilesModule, AiModule, SocialPostModule, MongoModule],
   controllers: [BlogController],
   providers: [BlogService],
 })

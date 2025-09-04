@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 
 // Services
 import { PrismaService } from '../prisma/prisma.service';
+import { MongoService } from '../mongo/mongo.service';
 import { FilesService } from '../files/files.service';
 
 // DTOs
@@ -18,6 +19,7 @@ import { GenerateBlogDto } from './dto/generate-blog.dto';
 import { GenerateBlogBatchDto } from './dto/generate-blog-batch.dto';
 import { AiService } from '../ai/ai.service';
 import { SocialPostService } from '../social-post/social-post.service';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class BlogService {
@@ -27,6 +29,7 @@ export class BlogService {
     private readonly filesService: FilesService,
     private readonly aiService: AiService,
     private readonly socialPostService: SocialPostService,
+    private readonly mongo: MongoService,
   ) {}
 
   async create(data: CreateBlogDto, cover?: Express.Multer.File) {
@@ -155,6 +158,59 @@ export class BlogService {
     } catch (error) {
       this.logger.error('Failed to remove blog post', error.stack);
       throw new InternalServerErrorException('Failed to remove blog post');
+    }
+  }
+
+  async addAccessById(id: string, type: 'view' | 'read' = 'view') {
+    try {
+      const data: Prisma.BlogUpdateInput =
+        type === 'read'
+          ? ({ readsCount: { increment: 1 } } as any)
+          : ({ viewsCount: { increment: 1 } } as any);
+      const updated = await this.prisma.blog.update({
+        where: { id },
+        data,
+        select: { id: true, viewsCount: true, readsCount: true },
+      });
+      try {
+        await this.mongo.collection('blog_access').insertOne({
+          blogId: updated.id,
+          type,
+        } as any);
+      } catch (e) {
+        this.logger.warn('Failed to log blog access to Mongo', e as any);
+      }
+      return updated;
+    } catch (error) {
+      this.logger.error('Failed to add blog access by id', error?.stack || error);
+      throw new InternalServerErrorException('Failed to add blog access');
+    }
+  }
+
+  async addAccessBySlug(slug: string, type: 'view' | 'read' = 'view') {
+    if (!slug) throw new BadRequestException('slug is required');
+    try {
+      const data: Prisma.BlogUpdateInput =
+        type === 'read'
+          ? ({ readsCount: { increment: 1 } } as any)
+          : ({ viewsCount: { increment: 1 } } as any);
+      const updated = await this.prisma.blog.update({
+        where: { slug },
+        data,
+        select: { id: true, viewsCount: true, readsCount: true, slug: true },
+      });
+      try {
+        await this.mongo.collection('blog_access').insertOne({
+          blogId: updated.id,
+          type,
+        } as any);
+      } catch (e) {
+        this.logger.warn('Failed to log blog access to Mongo', e as any);
+      }
+      return updated;
+    } catch (error) {
+      this.logger.error('Failed to add blog access by slug', error?.stack || error);
+      throw new InternalServerErrorException('Failed to add blog access');
     }
   }
 

@@ -35,7 +35,7 @@ async function bootstrap() {
 
   // Swagger
   const config = new DocumentBuilder()
-    .setTitle('🩶 Donna - Core')
+    .setTitle('🩶 Houser - Core')
     .setDescription('API Houser Core')
     .setVersion('1.0')
     .addBearerAuth()
