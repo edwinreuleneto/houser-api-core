@@ -32,6 +32,45 @@ export interface GeneratedBlogOutput {
 export class AiService {
   private readonly logger = new Logger(AiService.name);
   private readonly openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  private readonly onHeroku = Boolean(
+    process.env.DYNO || process.env.HEROKU_APP_NAME || process.env.HEROKU_DYNO_ID,
+  );
+
+  // Timeboxing to avoid Heroku's 30s router timeout (H12)
+  private readonly deadlineMs = parseInt(
+    process.env.AI_REQUEST_DEADLINE_MS || '25000',
+    10,
+  );
+  private readonly chatTimeoutMs = parseInt(
+    process.env.AI_CHAT_TIMEOUT_MS || '15000',
+    10,
+  );
+  private readonly imageTimeoutMs = parseInt(
+    process.env.AI_IMAGE_TIMEOUT_MS || (this.onHeroku ? '8000' : '12000'),
+    10,
+  );
+  private readonly placeholderTimeoutMs = parseInt(
+    process.env.AI_PLACEHOLDER_TIMEOUT_MS || '3000',
+    10,
+  );
+
+  private withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+    let t: NodeJS.Timeout | null = null;
+    const timeout = new Promise<never>((_, reject) => {
+      t = setTimeout(() => {
+        const err = new Error(`${label} timed out after ${ms}ms`);
+        // mark for easier detection upstream
+        (err as any).code = 'ETIMEDOUT';
+        reject(err);
+      }, ms);
+    });
+    return Promise.race([
+      promise.finally(() => {
+        if (t) clearTimeout(t);
+      }),
+      timeout,
+    ]) as Promise<T>;
+  }
 
   async generateBlogPost(
     input: GenerateBlogInput,
@@ -49,7 +88,11 @@ export class AiService {
       let chain = prompt.pipe(llm);
       let response;
       try {
-        response = await chain.invoke({ userPrompt: input.prompt });
+        response = await this.withTimeout(
+          chain.invoke({ userPrompt: input.prompt }),
+          this.chatTimeoutMs,
+          'chat-completion',
+        );
       } catch (err: any) {
         const msg = String(err?.message || err);
         if (
@@ -65,7 +108,11 @@ export class AiService {
             apiKey: process.env.OPENAI_API_KEY,
           });
           chain = prompt.pipe(llm);
-          response = await chain.invoke({ userPrompt: input.prompt });
+          response = await this.withTimeout(
+            chain.invoke({ userPrompt: input.prompt }),
+            this.chatTimeoutMs,
+            'chat-completion(fallback)',
+          );
         } else {
           throw err;
         }
@@ -101,9 +148,11 @@ export class AiService {
 
       // Configuração de imagens via env
       const imageEnabled =
-        (process.env.AI_IMAGE_ENABLED ?? 'true').toLowerCase() !== 'false';
+        (process.env.AI_IMAGE_ENABLED ?? (this.onHeroku ? 'false' : 'true'))
+          .toLowerCase() !== 'false';
       const imageModel = process.env.AI_IMAGE_MODEL || 'gpt-image-1';
-      const requestedSize = process.env.AI_IMAGE_SIZE || '1536x1024';
+      const requestedSize =
+        process.env.AI_IMAGE_SIZE || (this.onHeroku ? '1024x1024' : '1536x1024');
       const normalizeSize = (
         size: string,
       ): '1024x1024' | '1024x1536' | '1536x1024' | 'auto' => {
@@ -138,11 +187,15 @@ export class AiService {
       let contentTypeHint: string | undefined;
       if (imageEnabled) {
         try {
-          const imageRes = await this.openai.images.generate({
-            model: imageModel,
-            prompt: imagePrompt,
-            size: imageSize,
-          });
+          const imageRes = await this.withTimeout(
+            this.openai.images.generate({
+              model: imageModel,
+              prompt: imagePrompt,
+              size: imageSize,
+            }),
+            this.imageTimeoutMs,
+            'image-generation',
+          );
           const item = imageRes.data?.[0];
           const hasB64 = Boolean(item?.b64_json);
           const hasUrl = Boolean((item as any)?.url);
@@ -162,7 +215,11 @@ export class AiService {
           } else if ((item as any)?.url) {
             const url: string = (item as any).url;
             this.logger.log(`AI image provided URL. Fetching: ${url}`);
-            const res = await fetch(url);
+            const res = (await this.withTimeout(
+              fetch(url),
+              this.placeholderTimeoutMs,
+              'image-download',
+            )) as Response;
             contentTypeHint = res.headers.get('content-type') || undefined;
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const arrayBuf = await res.arrayBuffer();
@@ -206,7 +263,11 @@ export class AiService {
           const defaultUrl = `https://via.placeholder.com/${w}x${h}.jpg?text=${text}`;
           const url = process.env.AI_IMAGE_PLACEHOLDER_URL || defaultUrl;
           this.logger.log(`Fetching placeholder cover from: ${url}`);
-          const res = await fetch(url);
+          const res = (await this.withTimeout(
+            fetch(url),
+            this.placeholderTimeoutMs,
+            'placeholder-download',
+          )) as Response;
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const arrayBuf = await res.arrayBuffer();
           b64 = Buffer.from(arrayBuf).toString('base64');
